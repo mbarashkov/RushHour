@@ -7,6 +7,10 @@ using RushHour.UI;
 using RushHour.Events;
 using RushHour.Experiments;
 using RushHour.Logging;
+using System;
+using System.Collections.Generic;
+using RushHour.StatisticsFix;
+using RushHour.Utils;
 
 namespace RushHour
 {
@@ -28,6 +32,22 @@ namespace RushHour
 
             Debug.Log("Loading up Rush Hour main");
         }
+
+        public class Detour
+        {
+            public MethodInfo OriginalMethod;
+            public MethodInfo CustomMethod;
+            public RedirectCallsState Redirect;
+
+            public Detour(MethodInfo originalMethod, MethodInfo customMethod)
+            {
+                this.OriginalMethod = originalMethod;
+                this.CustomMethod = customMethod;
+                this.Redirect = RedirectionHelper.RedirectCalls(originalMethod, customMethod);
+            }
+        }
+
+        public static List<Detour> Detours { get; set; }
 
         public override void OnLevelLoaded(LoadMode mode)
         {
@@ -66,6 +86,70 @@ namespace RushHour
                     }
 
                     Redirect();
+
+                    Detours = new List<Detour>();
+                    bool detourFailed = false;
+                    try
+                    {
+                        var methodToReplace = typeof(TransportLineAI).GetMethod("SimulationStep",
+                            new[]
+                            {
+                        typeof(ushort),
+                        typeof(NetNode).MakeByRefType()
+                            });
+                        var methodToReplaceWith = typeof(CustomTransportLineAI).GetMethod("CustomNodeSimulationStep");
+
+                        if (methodToReplace == null)
+                        {
+                            Log.Info("methodToReplace == null");
+                        }
+
+                        if (methodToReplaceWith == null)
+                        {
+                            Log.Info("methodToReplaceWith == null");
+                        }
+
+                        var detour = new Detour(methodToReplace,
+                            methodToReplaceWith);
+
+                        Detours.Add(detour);
+                    }
+                    catch (Exception ex)
+                    {
+                        detourFailed = true;
+                    }
+
+                    Log.Info("Redirection TransportTool::RenderOverlay calls");
+                    detourFailed = false;
+                    try
+                    {
+                        var methodToReplace = typeof(TransportManager).GetMethod("RenderLines",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        var methodToReplaceWith = typeof(TransportLineRenderer).GetMethod("CustomRenderLines",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        if (methodToReplace == null)
+                        {
+                            Log.Info("methodToReplace == null");
+                        }
+
+                        if (methodToReplaceWith == null)
+                        {
+                            Log.Info("methodToReplaceWith == null");
+                        }
+
+                        var detour = new Detour(methodToReplace,
+                            methodToReplaceWith);
+                        Log.Info("Redirection TransportLineAI::RenderOverlay calls step 2");
+
+                        Detours.Add(detour);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Could not redirect TransportTool::RenderOverlay " + ex.Message);
+                        detourFailed = true;
+                    }
                 }
             }
             else

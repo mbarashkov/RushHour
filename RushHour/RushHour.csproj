@@ -97,6 +97,10 @@
     <Compile Include="Simulation Handlers\NewSimulationManager.cs" />
     <Compile Include="Simulation Handlers\Time.cs" />
     <Compile Include="Citizen Handlers\NewTouristAI.cs" />
+    <Compile Include="StatisticsFix\CustomTransportLineAI.cs" />
+    <Compile Include="StatisticsFix\PassengerCountSaveData.cs" />
+    <Compile Include="StatisticsFix\StatisticsFixManager.cs" />
+    <Compile Include="StatisticsFix\TransportLineRenderer.cs" />
     <Compile Include="UI\DateTimeBar.cs" />
     <Compile Include="UI\EventPopupPanel.cs" />
     <Compile Include="UI\NewBuildingWorldInfoPanel.cs" />
@@ -109,6 +113,7 @@
     <Compile Include="UI\UserEventCreationWindow.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="DemandExtension.cs" />
+    <Compile Include="Utils\Log.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Locale\brazilian-portuguese.xml">
